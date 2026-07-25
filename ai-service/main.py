@@ -8,15 +8,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from typing import Optional
-import ollama
+from google import genai
 import whisper
 from pydub import AudioSegment
 
 load_dotenv()
 
-AI_SERVICE_PORT = int(os.getenv("AI_SERVICE_PORT",8000))
-OLLAMA_MODEL_NAME=os.getenv("OLLAMA_MODEL_NAME","mistral")
-
+AI_SERVICE_PORT = int(os.getenv("AI_SERVICE_PORT", 8000))
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY not found in .env")
+client = genai.Client(api_key=GEMINI_API_KEY)
+# MODEL_NAME = "gemini-2.5-flash-lite"
+MODEL_NAME = "gemini-3.6-flash"
 app=FastAPI(title="AI Interviewer Microservice",version="1.0")
 
 origins = ["*"]
@@ -65,7 +69,7 @@ class EvaluationResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message":"Hello from AI Interviewer Microservice !","model":OLLAMA_MODEL_NAME}
+    return {"message":"Hello from AI Interviewer Microservice !","model":MODEL_NAME}
 
 
 @app.post("/generate-questions",response_model=QuestionResponse)
@@ -93,16 +97,17 @@ async def generate_questions(request:QuestionResquest):
         user_prompt=(
             f"Generate exactly {request.count} unique interview questions for a {request.level}  level {request.role} "
         )
-        response=ollama.generate(
-            model=OLLAMA_MODEL_NAME,
-            prompt=user_prompt,
-            system=system_prompt,
-            options={"temperature":0.6}
+        response=client.models.generate_content(
+            model=MODEL_NAME,
+            contents=user_prompt,
+            config={
+                "system_instruction":system_prompt,
+                "temperature":0.6,
+            },
         )
-
-        raw_text=response['response'].strip()
+        raw_text = response.text.strip()
         questions=[q.strip() for q in raw_text.split('\n') if q.strip()]
-        return QuestionResponse(questions=questions[:request.count],model_used=OLLAMA_MODEL_NAME)
+        return QuestionResponse(questions=questions[:request.count],model_used=MODEL_NAME)
 
     except Exception as e:
         raise HTTPException(status_code=500,detail=str(e))
@@ -163,14 +168,16 @@ async def evaluate(request:EvaluationRequest):
             f"Verbal Answer: {request.user_answer or 'No verbal answer provided'}\n"
             f"Code Answer: {request.user_code or 'No code provided'}\n"
         )
-        response=ollama.generate(
-            model=OLLAMA_MODEL_NAME,
-            prompt=user_prompt,
-            system=system_prompt,
-            format="json",
-            options={"temperature":0.1}
+        response = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=user_prompt,
+            config={
+                "system_instruction": system_prompt,
+                "temperature": 0.1,
+                "response_mime_type": "application/json",
+            },
         )
-        response_text=response['response'].strip()
+        response_text = response.text.strip()
         try:
             evaluation_data=json.loads(response_text)
             if 'idealAnswer' in evaluation_data and not isinstance(evaluation_data['idealAnswer'],str):
@@ -191,7 +198,6 @@ async def evaluate(request:EvaluationRequest):
     except Exception as e:
         print(f"Failed to generate response: {e}")
         raise HTTPException(status_code=500,detail=str(e))
-        
 
 if __name__ == "__main__":
     uvicorn.run(app,host="0.0.0.0",port=AI_SERVICE_PORT)
