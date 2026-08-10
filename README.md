@@ -1,59 +1,63 @@
 
 # 🧠 AI-Powered Technical Interview Prepper
 
-A full-stack application designed to simulate real-world technical interviews. It allows users to practice answering conceptual and coding questions verbally and programmatically, receiving instant, AI-driven feedback on their performance.
+A full-stack AI-powered application designed to simulate real-world technical interviews. Users can practice conceptual and coding questions through voice and code, receiving AI-driven feedback, technical scores, confidence scores, ideal answers, and detailed performance analytics.
 
-## ✨ Key Features
+### ✨ Key Features
 
-* **Customizable Interviews**: Select Role (MERN, Python, Data Science), Difficulty Level, and Interview Type (Oral vs. Coding Mix).
-* **Hybrid Input System**:
-* **🎙️ Voice Response**: Uses **OpenAI Whisper** to transcribe verbal answers for conceptual questions.
-* **💻 Code Editor**: Integrated **Monaco Editor** for solving coding challenges directly in the browser.
+### 🎯 Customizable Interviews
+- Select interview roles such as **MERN Stack Developer, Python Developer, and Data Science**.
+- Choose the **difficulty level** based on experience.
+- Select between **conceptual oral interviews** and **coding-mix interviews**.
 
+### 🔄 Hybrid Input System
+- **🎙️ Voice Response:** Uses **OpenAI Whisper** to transcribe verbal answers for conceptual questions.
+- **💻 Code Editor:** Integrated **Monaco Editor** for solving coding challenges directly in the browser.
 
-* **AI Microservice Architecture**:
-* **Question Generation**: dynamically creates unique interview questions using **Ollama (Mistral)**.
-* **Smart Evaluation**: Analyzes both code logic and verbal transcription to provide a **Technical Score** and **Confidence Score**.
+### 🤖 AI-Powered Evaluation
+- **Dynamic Question Generation:** Uses the **Google Gemini API** to generate unique, role-specific interview questions.
+- **Smart Evaluation:** Evaluates verbal explanations and code submissions to generate:
+  - Technical Score
+  - Confidence Score
+  - Personalized AI Feedback
+  - Ideal Answer / Solution
+- Includes validation for empty, irrelevant, nonsensical, or invalid responses.
 
+### 📊 Detailed Performance Analytics
+- Interview session history with overall performance scores.
+- Per-question breakdown of user submissions and ideal answers.
+- Interactive performance visualizations using **Chart.js**.
 
-* **Detailed Analytics**:
-* Session history with global scores.
-* Per-question breakdown showing user submission vs. ideal implementation.
-* Performance charts using **Chart.js**.
-
-
-* **Secure Authentication**: JWT-based user login and registration.
-
----
+### 🔐 Secure Authentication
+- JWT-based user registration and authentication.
+- Password hashing using **bcryptjs**.
 
 ## 🛠️ Tech Stack
 
-### **Frontend**
+### Frontend
+- **React (Vite)**
+- **Redux Toolkit**
+- **Tailwind CSS**
+- **Monaco Editor**
+- **Chart.js / React-Chartjs-2**
+- **React Router DOM**
 
-* **Framework**: React (Vite)
-* **State Management**: Redux Toolkit
-* **Styling**: Tailwind CSS
-* **Editor**: `@monaco-editor/react`
-* **Visualization**: Chart.js / React-Chartjs-2
-* **Routing**: React Router Dom
+### Backend API Gateway
+- **Node.js**
+- **Express.js**
+- **MongoDB**
+- **Mongoose**
+- **JWT**
+- **bcryptjs**
 
-### **Backend (API Gateway)**
-
-* **Runtime**: Node.js
-* **Framework**: Express.js
-* **Database**: MongoDB (Mongoose)
-* **Authentication**: JSON Web Tokens (JWT) & bcryptjs
-
-### **AI Microservice**
-
-* **Runtime**: Python 3.9+
-* **Framework**: FastAPI
-* **LLM Engine**: Ollama (running `mistral` locally)
-* **Speech-to-Text**: OpenAI Whisper (`base.en` model)
-* **Audio Processing**: PyDub / FFMPEG
-
----
-
+### AI Microservice
+- **Python**
+- **FastAPI**
+- **Google Gemini API**
+- **OpenAI Whisper**
+- **PyDub**
+- **FFmpeg**
+  
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -61,18 +65,14 @@ A full-stack application designed to simulate real-world technical interviews. I
 1. **Node.js** (v16+) and **npm**.
 2. **Python** (v3.9+) and **pip**.
 3. **MongoDB**: Local instance or Atlas URI.
-4. **Ollama**: Installed and running locally.
-* Install from [ollama.com](https://ollama.com).
-* Pull the model: `ollama pull mistral`.
-
-
-5. **FFmpeg**: Required for audio processing (should be in your system PATH).
+4. **Google Gemini API Key**: Required for AI-powered question generation and evaluation.
+5. **FFmpeg**: Required for audio processing and speech transcription.
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/siddhantsaxenaofficial/ai-interviewer.git
-cd ai-interviewer
+git clone https://github.com/pranjaldiwakar007-tech/AI-Interview-Prepper.git
+cd Ai-Interview-Prepper
 
 ```
 
@@ -103,11 +103,11 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install fastapi uvicorn ollama openai-whisper pydub python-dotenv
+pip install fastapi uvicorn google-genai openai-whisper pydub python-dotenv python-multipart
 
 # Create a .env file
-echo "AI_SERVICE_PORT=8000" > .env
-echo "OLLAMA_MODEL_NAME=mistral" >> .env
+AI_SERVICE_PORT=8000
+GEMINI_API_KEY=your_gemini_api_key
 
 # Run the microservice
 uvicorn main:app --reload --port 8000
@@ -135,22 +135,85 @@ CLICK ON FOR-FIRST-TIME.BAT FILE AND RUN
 ```
 ---
 
+
+## Most important: Updated Architecture Overview
+
+```md
 ## 📐 Architecture Overview
 
-The application follows a microservices-inspired architecture to separate heavy AI processing from the main application logic.
+The application follows a microservices-inspired architecture that separates the user interface, core application logic, and AI processing.
 
-1. **Client (React)**: Handles UI, Audio Recording, and Code Editing. Sends data to Node.js.
-2. **Node.js Server**: Acts as the API Gateway. Handles Auth, Database storage, and forwards AI tasks to the Python service.
-3. **Python Service**:
-* Receives `POST /generate-questions`.
-* Receives `POST /transcribe` (Audio -> Text).
-* Receives `POST /evaluate` (Text/Code -> Score/Feedback JSON).
+### 1. Client — React Frontend
+Handles:
 
+- Interview configuration
+- Audio recording
+- Voice responses
+- Monaco-based code editing
+- Displaying AI feedback and scores
+- Performance analytics
 
-4. **Ollama**: The local LLM engine that powers the generation and evaluation logic.
+### 2. Node.js Server — API Gateway
+Acts as the central backend layer and handles:
 
----
+- User authentication and authorization
+- JWT validation
+- MongoDB data persistence
+- Interview session management
+- Request routing between the frontend and AI microservice
 
+### 3. Python FastAPI — AI Microservice
+Handles computationally intensive AI operations through dedicated endpoints:
+
+- `POST /generate-questions`  
+  Generates role-specific and difficulty-specific interview questions using Google Gemini.
+
+- `POST /transcribe`  
+  Processes uploaded audio and uses OpenAI Whisper to convert speech into text.
+
+- `POST /evaluate`  
+  Evaluates verbal answers and code submissions using Google Gemini and returns structured JSON containing technical score, confidence score, AI feedback, and an ideal answer.
+
+### 4. Google Gemini API
+Powers:
+
+- Dynamic interview question generation
+- Context-aware answer evaluation
+- Code logic evaluation
+- Personalized feedback
+- Technical and confidence scoring
+- Ideal answer generation
+
+```
+### Request Flow
+
+```text
+                    ┌─────────────────────┐
+                    │   React Frontend    │
+                    │ Voice + Code Input  │
+                    └──────────┬──────────┘
+                               │
+                               ▼
+                    ┌─────────────────────┐
+                    │ Node.js / Express   │
+                    │     API Gateway     │
+                    └───────┬───────┬─────┘
+                            │       │
+                  Auth/Data │       │ AI Requests
+                            ▼       ▼
+                     ┌──────────┐  ┌──────────────────┐
+                     │ MongoDB  │  │ Python / FastAPI │
+                     └──────────┘  └───────┬──────────┘
+                                           │
+                              ┌────────────┴────────────┐
+                              ▼                         ▼
+                     ┌────────────────┐       ┌────────────────┐
+                     │ Google Gemini  │       │ OpenAI Whisper │
+                     │ Generation +   │       │ Speech-to-Text │
+                     │ Evaluation     │       │                │
+                     └────────────────┘       └────────────────┘
+
+```
 ## 🤝 Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request.
