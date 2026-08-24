@@ -51,12 +51,7 @@ A full-stack AI-powered application designed to simulate real-world technical in
 - **bcryptjs**
 
 ### AI Microservice
-- **Python**
-- **FastAPI**
 - **Google Gemini API**
-- **OpenAI Whisper**
-- **PyDub**
-- **FFmpeg**
   
 ## 🚀 Getting Started
 
