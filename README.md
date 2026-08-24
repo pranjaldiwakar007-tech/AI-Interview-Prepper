@@ -92,18 +92,8 @@ echo "NODE_ENV=development" >> .env
 npm run server
 
 ```
-
-### 3. AI Service Setup (Python)
-
-```bash
-cd ../ai_service
-
-# Create virtual environment
-python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install fastapi uvicorn google-genai openai-whisper pydub python-dotenv python-multipart
 
 # Create a .env file
 AI_SERVICE_PORT=8000
@@ -160,19 +150,6 @@ Acts as the central backend layer and handles:
 - JWT validation
 - MongoDB data persistence
 - Interview session management
-- Request routing between the frontend and AI microservice
-
-### 3. Python FastAPI — AI Microservice
-Handles computationally intensive AI operations through dedicated endpoints:
-
-- `POST /generate-questions`  
-  Generates role-specific and difficulty-specific interview questions using Google Gemini.
-
-- `POST /transcribe`  
-  Processes uploaded audio and uses OpenAI Whisper to convert speech into text.
-
-- `POST /evaluate`  
-  Evaluates verbal answers and code submissions using Google Gemini and returns structured JSON containing technical score, confidence score, AI feedback, and an ideal answer.
 
 ### 4. Google Gemini API
 Powers:
@@ -202,13 +179,13 @@ Powers:
                   Auth/Data │       │ AI Requests
                             ▼       ▼
                      ┌──────────┐  ┌──────────────────┐
-                     │ MongoDB  │  │ Python / FastAPI │
+                     │ MongoDB  │  │ GEMINI API │
                      └──────────┘  └───────┬──────────┘
                                            │
                               ┌────────────┴────────────┐
                               ▼                         ▼
                      ┌────────────────┐       ┌────────────────┐
-                     │ Google Gemini  │       │ OpenAI Whisper │
+                     │ Google Gemini  │        │
                      │ Generation +   │       │ Speech-to-Text │
                      │ Evaluation     │       │                │
                      └────────────────┘       └────────────────┘
